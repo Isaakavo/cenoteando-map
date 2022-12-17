@@ -1,9 +1,10 @@
-import React from 'react';
 import maplibreGl, { Map } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import React from 'react';
 import '../map.css';
 import CenoteDTO from '../models/CenoteDTO';
-import { tileProviders } from '../utils/tiles';
+import { layers, mapLayers } from '../utils/tiles';
+import { MapLayerSelector } from './MapLayerSelector';
 
 interface MapCI {
   lng: number;
@@ -23,6 +24,10 @@ export const MapC: React.FC<MapCI> = (props) => {
   const [zoom] = React.useState(props.zoom);
   const [API_KEY] = React.useState('2ovqIDOtsFG069J69Ap2');
 
+  const onSelectedOptionCallback = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    map.current?.setStyle(mapLayers(e.target.value));
+  }
+
   React.useEffect(() => {
     if (map.current) return; //stops map from intializing more than once
     map.current = new maplibreGl.Map({
@@ -32,13 +37,7 @@ export const MapC: React.FC<MapCI> = (props) => {
       zoom: zoom,
     });
     let nav = new maplibreGl.NavigationControl({});
-    map.current.addControl(nav, 'top-right');
-
-    map.current.on('styledata', () => {
-      tileProviders.forEach((layer) => {
-        map.current?.addLayer(layer);
-      });
-    });
+    map.current.addControl(nav, 'bottom-right');
   }, [zoom]);
 
   React.useEffect(() => {
@@ -55,6 +54,7 @@ export const MapC: React.FC<MapCI> = (props) => {
   return (
     <div className='map-wrap'>
       <div ref={mapContainer} className='map' />
+      <MapLayerSelector options={layers} selector={onSelectedOptionCallback} />
     </div>
   );
 };
