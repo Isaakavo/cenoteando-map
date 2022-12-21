@@ -16,6 +16,7 @@ export interface geoJsonI {
 function App() {
   const [cenotes, setCenotes] = React.useState<CenoteDTO[] | null>(null);
   const [geoJson, setGeoJson] = React.useState<geoJsonI[]>([]);
+  
   const fetching = async () => {
     let response = RemoteServices.cenotesGenerator(500);
     for await (let res of response) {

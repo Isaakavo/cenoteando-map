@@ -12,7 +12,7 @@ interface MapCI {
   lng: number;
   lat: number;
   zoom: number;
-  cenotes?: CenoteDTO[] | null;
+  cenotes?: CenoteDTO[] | CenoteDTO| null;
   geoJson: geoJsonI[];
 }
 
@@ -27,97 +27,93 @@ export const MapC: React.FC<MapCI> = (props) => {
   const [zoom] = React.useState(props.zoom);
   const [API_KEY] = React.useState('2ovqIDOtsFG069J69Ap2');
   // const [cenotesCoor, setCenotesCoor] = React.useState<[number, number][]>([]);
+  const [cenotesLayers, setCenotesLayers] = React.useState('');
 
   const onSelectedOptionCallback = (
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
+    setCenotesLayers(e.target.value);
     map.current?.setStyle(mapLayers(e.target.value));
   };
 
   React.useEffect(() => {
-    if (map.current) return; //stops map from intializing more than once
-    map.current = new maplibreGl.Map({
-      container: mapContainer.current ? mapContainer.current : '',
-      style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${API_KEY}`,
-      center: [lng, lat],
-      zoom: zoom,
-    });
-    let nav = new maplibreGl.NavigationControl({});
-    map.current.addControl(nav, 'bottom-right');
-  }, [geoJson]);
-
-  React.useEffect(() => {
     if (map.current) {
+      debugger;
       map.current.on('load', () => {
+        console.log('load');
+        
         if (geoJson.length > 0) {
-          map.current?.addSource('cenotes', {
-            type: 'geojson',
-            // Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
-            // from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
-            data: {
-              type: 'FeatureCollection',
-              features: geoJson,
-            },
-            cluster: true,
-            clusterMaxZoom: 14, // Max zoom to cluster points on
-            clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
-          });
+          const sourceData = map.current?.getSource('cenotes');
+          if (!sourceData) {
+            map.current?.addSource('cenotes', {
+              type: 'geojson',
+              // Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
+              // from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
+              data: {
+                type: 'FeatureCollection',
+                features: geoJson,
+              },
+              cluster: true,
+              clusterMaxZoom: 14, // Max zoom to cluster points on
+              clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
+            });
 
-          map.current?.addLayer({
-            id: 'clusters',
-            type: 'circle',
-            source: 'cenotes',
-            paint: {
-              // Use step expressions (https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-step)
-              // with three steps to implement three types of circles:
-              //   * Blue, 20px circles when point count is less than 100
-              //   * Yellow, 30px circles when point count is between 100 and 750
-              //   * Pink, 40px circles when point count is greater than or equal to 750
-              'circle-color': [
-                'step',
-                ['get', 'point_count'],
-                '#51bbd6',
-                100,
-                '#f1f075',
-                750,
-                '#f28cb1',
-              ],
-              'circle-radius': [
-                'step',
-                ['get', 'point_count'],
-                20,
-                100,
-                30,
-                750,
-                40,
-              ],
-            },
-          });
+            map.current?.addLayer({
+              id: 'clusters',
+              type: 'circle',
+              source: 'cenotes',
+              paint: {
+                // Use step expressions (https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-step)
+                // with three steps to implement three types of circles:
+                //   * Blue, 20px circles when point count is less than 100
+                //   * Yellow, 30px circles when point count is between 100 and 750
+                //   * Pink, 40px circles when point count is greater than or equal to 750
+                'circle-color': [
+                  'step',
+                  ['get', 'point_count'],
+                  '#51bbd6',
+                  100,
+                  '#f1f075',
+                  750,
+                  '#f28cb1',
+                ],
+                'circle-radius': [
+                  'step',
+                  ['get', 'point_count'],
+                  20,
+                  100,
+                  30,
+                  750,
+                  40,
+                ],
+              },
+            });
 
-          map.current?.addLayer({
-            id: 'cluster-count',
-            type: 'symbol',
-            source: 'cenotes',
-            filter: ['has', 'point_count'],
-            layout: {
-              'text-field': ['get', 'point_count_abbreviated'],
-              'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-              'text-size': 12,
-            },
-          });
+            map.current?.addLayer({
+              id: 'cluster-count',
+              type: 'symbol',
+              source: 'cenotes',
+              filter: ['has', 'point_count'],
+              layout: {
+                'text-field': ['get', 'point_count_abbreviated'],
+                'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+                'text-size': 12,
+              },
+            });
 
-          map.current?.addLayer({
-            id: 'unclustered-point',
-            type: 'circle',
-            source: 'cenotes',
-            filter: ['!', ['has', 'point_count']],
-            paint: {
-              'circle-color': '#12730d',
-              'circle-radius': 10,
-              'circle-stroke-width': 5,
-              'circle-stroke-color': '#fff',
-            },
-          });
+            map.current?.addLayer({
+              id: 'unclustered-point',
+              type: 'circle',
+              source: 'cenotes',
+              filter: ['!', ['has', 'point_count']],
+              paint: {
+                'circle-color': '#12730d',
+                'circle-radius': 10,
+                'circle-stroke-width': 5,
+                'circle-stroke-color': '#fff',
+              },
+            });
+          }
         }
       });
 
@@ -170,28 +166,28 @@ export const MapC: React.FC<MapCI> = (props) => {
 
       map.current.on('mouseenter', 'clusters', () => {
         if (map.current) {
-          map.current.getCanvas().style.cursor = 'pointer'
+          map.current.getCanvas().style.cursor = 'pointer';
         }
       });
 
       map.current.on('mouseleave', 'clusters', () => {
         if (map.current) {
-          map.current.getCanvas().style.cursor = ''
+          map.current.getCanvas().style.cursor = '';
         }
       });
+      return; //stops map from intializing more than once
     }
+    // Instantiation of the map
+    map.current = new maplibreGl.Map({
+      container: mapContainer.current ? mapContainer.current : '',
+      style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${API_KEY}`,
+      center: [lng, lat],
+      zoom: zoom,
+    });
+    let nav = new maplibreGl.NavigationControl({});
+    map.current.addControl(nav, 'bottom-right');
 
-    // cenotes?.forEach((elem) => {
-    //   const newCenotes = [elem.geojson.geometry.coordinates, ...cenotesCoor]
-    //   setCenotesCoor(newCenotes);
-    //   // if (map.current !== null) {
-    //   //   new maplibreGl.Marker({ color: '#1b691b' })
-    //   //     .setLngLat(elem.geojson.geometry.coordinates)
-    //   //     .addTo(map.current);
-    //   // }
-    // });
-    // console.log({cenotesCoor});
-  }, [geoJson]);
+  }, [API_KEY, geoJson, lat, lng, zoom]);
 
   return (
     <div className='map-wrap'>

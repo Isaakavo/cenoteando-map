@@ -10,8 +10,8 @@ export const MapLayerSelector: React.FC<MapLayerSelectorI> = ({ options, selecto
   return (
     <div className='basemaps-wrapper'>
       <select className='basemaps' onChange={selector}>
-        {options.map((item) => {
-          return <option value={item}>{item}</option>;
+        {options.map((item, index) => {
+          return <option key={`${item}-${index}`}  value={item}>{item}</option>;
         })}
       </select>
     </div>
