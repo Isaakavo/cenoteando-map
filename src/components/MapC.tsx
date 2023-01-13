@@ -19,6 +19,7 @@ interface MapCI {
 export const MapC: React.FC<MapCI> = (props) => {
   let { cenotes, geoJson } = props;
 
+  debugger;
   const mapContainer = React.useRef(null);
   const map = React.useRef<Map | null>(null);
 

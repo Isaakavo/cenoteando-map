@@ -4,6 +4,7 @@ import './map.css';
 import { MapC } from './components/MapC';
 import RemoteServices from './services/RemoteServices';
 import CenoteDTO from './models/CenoteDTO';
+import { useApi } from './hooks/useApi';
 
 export interface geoJsonI {
   type: 'Feature';
@@ -16,37 +17,66 @@ export interface geoJsonI {
 function App() {
   const [cenotes, setCenotes] = React.useState<CenoteDTO[] | null>(null);
   const [geoJson, setGeoJson] = React.useState<geoJsonI[]>([]);
+  const [response, error, loading] = useApi({
+    url: 'api/cenotes',
+    method: 'get',
+    params: {size: 100}
+  });
+  console.log(response);
   
-  const fetching = async () => {
-    let response = RemoteServices.cenotesGenerator(500);
-    for await (let res of response) {
-      setCenotes(res);
+  React.useEffect(() => {
+    if (!loading && !error && response) {
+      setCenotes(response);
       const newData = [];
-      for (const data of res) {
+      for (const data of response) {
         const type = data.geojson.type;
-        const coordinates = data.geojson.geometry.coordinates
-        const coordinatesType = data.geojson.geometry.type
+        const coordinates = data.geojson.geometry.coordinates;
+        const coordinatesType = data.geojson.geometry.type;
         const newObj = {
-            type,
-            geometry: {
-              type: coordinatesType,
-              coordinates
-            }
-          ,
-
-        }
+          type,
+          geometry: {
+            type: coordinatesType,
+            coordinates,
+          },
+        };
         newData.push(newObj);
       }
       setGeoJson(newData);
     }
-  };
+  }, [error, loading, response]);
 
-  React.useEffect(() => {
-    fetching();
-  }, []);
+  // const fetching = async () => {
+  //   let response = RemoteServices.cenotesGenerator(500);
+  //   for await (let res of response) {
+  //     setCenotes(res);
+  //     const newData = [];
+  //     for (const data of res) {
+  //       const type = data.geojson.type;
+  //       const coordinates = data.geojson.geometry.coordinates
+  //       const coordinatesType = data.geojson.geometry.type
+  //       const newObj = {
+  //           type,
+  //           geometry: {
+  //             type: coordinatesType,
+  //             coordinates
+  //           }
+  //         ,
+
+  //       }
+  //       newData.push(newObj);
+  //     }
+  //     setGeoJson(newData);
+  //   }
+  // };
+
+  // React.useEffect(() => {
+  //   fetching();
+  // }, []);
 
   //console.log({cenotes});
-
+  if (loading) {
+    return null;
+  }
   return (
     <div className='map-wrap'>
       <MapC
