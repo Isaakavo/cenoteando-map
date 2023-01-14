@@ -18,7 +18,7 @@ export interface geoJsonI {
 
 function App() {
   const [cenotes, setCenotes] = React.useState<CenoteDTO[] | null>(null);
-  const {data, loading, error} = useApi('api/cenotes', 'get', {}, {size: 2500});
+  const {data, loading, error} = useApi('api/cenotes', 'get', {}, {size: 150});
   
   React.useEffect(() => {
     if (data !== null) {

@@ -17,7 +17,6 @@ export const SingUp: React.FC = () => {
     console.log('Response from the service');
     
   };
-  console.log({ data, error });
   return (
     <div>
       <input

@@ -6,6 +6,9 @@ import reportWebVitals from './reportWebVitals';
 import { httpClientConfig } from './services/HttpClient';
 import { ApiInstanceProvider } from './utils/ApiInstanceProviver';
 
+//TODO investigate about CORS
+//There is a bug that makes a first request without jwt token,
+//we must investigate why
 const requestInterceptor = (config: AxiosRequestConfig) => {
   const authHeader = config?.headers?.['Authorization'];
   if (!authHeader) {

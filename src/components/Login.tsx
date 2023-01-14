@@ -10,6 +10,7 @@ export const Login: React.FC = () => {
     password,
   });
 
+  // TODO improve how to store JWT token and ensure that the token gets a good response on every call
   const onSubmit = () => {
     console.log('Submiting the values', { email, password });
     window.sessionStorage.clear();

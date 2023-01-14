@@ -81,6 +81,7 @@ export const MapC: React.FC<MapCI> = (props) => {
   const [cenotesLayers, setCenotesLayers] = React.useState('');
   const geoJson = cenotes?.map((cenote) => cenote.getGeoJson());
 
+  //TODO investigate how we can use a custom react component instead of mapGl popup
   const popup = React.useMemo(() => {
     return new maplibreGl.Popup({
       closeButton: true,
@@ -212,7 +213,6 @@ export const MapC: React.FC<MapCI> = (props) => {
     let nav = new maplibreGl.NavigationControl({});
     map.current.addControl(nav, 'bottom-right');
   }, [API_KEY, cenotes, geoJson, lat, lng, popup, zoom]);
-  console.log(cenotes);
 
   return (
     <div className='map-wrap'>
