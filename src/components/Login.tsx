@@ -17,8 +17,16 @@ export const Login: React.FC = () => {
   console.log({ data, error });
   return (
     <div>
-      <input type='text' onChange={(e) => setEmail(e.target.value)} />
-      <input type='password' onChange={(e) => setPassword(e.target.value)} />
+      <input
+        type='text'
+        placeholder='email'
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <input
+        type='password'
+        placeholder='password'
+        onChange={(e) => setPassword(e.target.value)}
+      />
       <input type='button' value='Sign!' onClick={onSubmit} />
     </div>
   );
