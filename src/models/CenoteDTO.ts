@@ -1,4 +1,5 @@
 import { GeoJsonProperties } from 'geojson';
+import { geoJsonI } from '../App';
 
 class CenoteSocialProperties {
     totalComments!: number;
@@ -59,6 +60,10 @@ export default class CenoteDTO {
 
     getLongitude(): number | null {
         return this.geojson?.geometry.coordinates[0] || null;
+    }
+
+    getGeoJson(): geoJsonI{
+      return this.geojson;
     }
 
     setCoordinates(latitude: number, longitude: number): void {

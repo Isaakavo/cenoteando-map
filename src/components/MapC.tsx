@@ -1,8 +1,13 @@
 import { Point } from 'geojson';
-import maplibreGl, { GeoJSONSource, LngLatLike, Map } from 'maplibre-gl';
+import maplibreGl, {
+  CircleLayerSpecification,
+  GeoJSONSource,
+  LngLatLike,
+  Map,
+  SymbolLayerSpecification,
+} from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import React from 'react';
-import { geoJsonI } from '../App';
 import '../map.css';
 import CenoteDTO from '../models/CenoteDTO';
 import { layers, mapLayers } from '../utils/tiles';
@@ -12,14 +17,60 @@ interface MapCI {
   lng: number;
   lat: number;
   zoom: number;
-  cenotes?: CenoteDTO[] | CenoteDTO| null;
-  geoJson: geoJsonI[];
+  cenotes: CenoteDTO[] | null;
 }
 
-export const MapC: React.FC<MapCI> = (props) => {
-  let { cenotes, geoJson } = props;
+const clusterLayers: CircleLayerSpecification = {
+  id: 'clusters',
+  type: 'circle',
+  source: 'cenotes',
+  paint: {
+    // Use step expressions (https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-step)
+    // with three steps to implement three types of circles:
+    //   * Blue, 20px circles when point count is less than 100
+    //   * Yellow, 30px circles when point count is between 100 and 750
+    //   * Pink, 40px circles when point count is greater than or equal to 750
+    'circle-color': [
+      'step',
+      ['get', 'point_count'],
+      '#51bbd6',
+      100,
+      '#f1f075',
+      750,
+      '#f28cb1',
+    ],
+    'circle-radius': ['step', ['get', 'point_count'], 20, 100, 30, 750, 40],
+  },
+};
 
-  debugger;
+const symbolLayer: SymbolLayerSpecification = {
+  id: 'cluster-count',
+  type: 'symbol',
+  source: 'cenotes',
+  filter: ['has', 'point_count'],
+  layout: {
+    'text-field': ['get', 'point_count_abbreviated'],
+    'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+    'text-size': 12,
+  },
+};
+
+const unclusterLayer: CircleLayerSpecification = {
+  id: 'unclustered-point',
+  type: 'circle',
+  source: 'cenotes',
+  filter: ['!', ['has', 'point_count']],
+  paint: {
+    'circle-color': '#12730d',
+    'circle-radius': 10,
+    'circle-stroke-width': 5,
+    'circle-stroke-color': '#fff',
+  },
+};
+
+export const MapC: React.FC<MapCI> = (props) => {
+  let { cenotes } = props;
+
   const mapContainer = React.useRef(null);
   const map = React.useRef<Map | null>(null);
 
@@ -27,8 +78,9 @@ export const MapC: React.FC<MapCI> = (props) => {
   const [lat] = React.useState(20.96670000000006);
   const [zoom] = React.useState(props.zoom);
   const [API_KEY] = React.useState('2ovqIDOtsFG069J69Ap2');
-  // const [cenotesCoor, setCenotesCoor] = React.useState<[number, number][]>([]);
   const [cenotesLayers, setCenotesLayers] = React.useState('');
+  debugger;
+  const geoJson = cenotes?.map((cenote) => cenote.getGeoJson());
 
   const onSelectedOptionCallback = (
     e: React.ChangeEvent<HTMLSelectElement>
@@ -39,87 +91,31 @@ export const MapC: React.FC<MapCI> = (props) => {
 
   React.useEffect(() => {
     if (map.current) {
-      debugger;
       map.current.on('load', () => {
-        console.log('load');
-        
-        if (geoJson.length > 0) {
+        if (geoJson && geoJson.length > 0) {
           const sourceData = map.current?.getSource('cenotes');
           if (!sourceData) {
             map.current?.addSource('cenotes', {
               type: 'geojson',
-              // Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
-              // from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
               data: {
                 type: 'FeatureCollection',
                 features: geoJson,
               },
               cluster: true,
-              clusterMaxZoom: 14, // Max zoom to cluster points on
-              clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
+              clusterMaxZoom: 14,
+              clusterRadius: 50,
             });
 
-            map.current?.addLayer({
-              id: 'clusters',
-              type: 'circle',
-              source: 'cenotes',
-              paint: {
-                // Use step expressions (https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-step)
-                // with three steps to implement three types of circles:
-                //   * Blue, 20px circles when point count is less than 100
-                //   * Yellow, 30px circles when point count is between 100 and 750
-                //   * Pink, 40px circles when point count is greater than or equal to 750
-                'circle-color': [
-                  'step',
-                  ['get', 'point_count'],
-                  '#51bbd6',
-                  100,
-                  '#f1f075',
-                  750,
-                  '#f28cb1',
-                ],
-                'circle-radius': [
-                  'step',
-                  ['get', 'point_count'],
-                  20,
-                  100,
-                  30,
-                  750,
-                  40,
-                ],
-              },
-            });
+            map.current?.addLayer(clusterLayers);
 
-            map.current?.addLayer({
-              id: 'cluster-count',
-              type: 'symbol',
-              source: 'cenotes',
-              filter: ['has', 'point_count'],
-              layout: {
-                'text-field': ['get', 'point_count_abbreviated'],
-                'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-                'text-size': 12,
-              },
-            });
+            map.current?.addLayer(symbolLayer);
 
-            map.current?.addLayer({
-              id: 'unclustered-point',
-              type: 'circle',
-              source: 'cenotes',
-              filter: ['!', ['has', 'point_count']],
-              paint: {
-                'circle-color': '#12730d',
-                'circle-radius': 10,
-                'circle-stroke-width': 5,
-                'circle-stroke-color': '#fff',
-              },
-            });
+            map.current?.addLayer(unclusterLayer);
           }
         }
       });
 
       map.current.on('click', 'clusters', (e) => {
-        debugger;
         const features = map.current?.queryRenderedFeatures(e.point, {
           layers: ['clusters'],
         })[0];
@@ -187,7 +183,6 @@ export const MapC: React.FC<MapCI> = (props) => {
     });
     let nav = new maplibreGl.NavigationControl({});
     map.current.addControl(nav, 'bottom-right');
-
   }, [API_KEY, geoJson, lat, lng, zoom]);
 
   return (

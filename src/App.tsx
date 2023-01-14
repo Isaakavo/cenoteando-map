@@ -2,7 +2,6 @@ import React from 'react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './map.css';
 import { MapC } from './components/MapC';
-import RemoteServices from './services/RemoteServices';
 import CenoteDTO from './models/CenoteDTO';
 import { useApi } from './hooks/useApi';
 
@@ -17,74 +16,28 @@ export interface geoJsonI {
 function App() {
   const [cenotes, setCenotes] = React.useState<CenoteDTO[] | null>(null);
   const [geoJson, setGeoJson] = React.useState<geoJsonI[]>([]);
-  const [response, error, loading] = useApi({
-    url: 'api/cenotes',
-    method: 'get',
-    params: {size: 100}
-  });
-  console.log(response);
+  const {data, loading, error} = useApi('api/cenotes', 'get', {}, {size: 100});
   
   React.useEffect(() => {
-    if (!loading && !error && response) {
-      setCenotes(response);
-      const newData = [];
-      for (const data of response) {
-        const type = data.geojson.type;
-        const coordinates = data.geojson.geometry.coordinates;
-        const coordinatesType = data.geojson.geometry.type;
-        const newObj = {
-          type,
-          geometry: {
-            type: coordinatesType,
-            coordinates,
-          },
-        };
-        newData.push(newObj);
-      }
-      setGeoJson(newData);
+    if (data !== null) {
+      const cenotesMap = data.content.map((cenote: CenoteDTO) => new CenoteDTO(cenote));
+      setCenotes(cenotesMap);
     }
-  }, [error, loading, response]);
+  }, [data])
 
-  // const fetching = async () => {
-  //   let response = RemoteServices.cenotesGenerator(500);
-  //   for await (let res of response) {
-  //     setCenotes(res);
-  //     const newData = [];
-  //     for (const data of res) {
-  //       const type = data.geojson.type;
-  //       const coordinates = data.geojson.geometry.coordinates
-  //       const coordinatesType = data.geojson.geometry.type
-  //       const newObj = {
-  //           type,
-  //           geometry: {
-  //             type: coordinatesType,
-  //             coordinates
-  //           }
-  //         ,
-
-  //       }
-  //       newData.push(newObj);
-  //     }
-  //     setGeoJson(newData);
-  //   }
-  // };
-
-  // React.useEffect(() => {
-  //   fetching();
-  // }, []);
-
-  //console.log({cenotes});
   if (loading) {
-    return null;
+    return (
+      <h1>Cargando...</h1>
+    )
   }
+  
   return (
     <div className='map-wrap'>
       <MapC
-        lng={-89.62316999999996}
-        lat={20.96670000000006}
-        zoom={10}
+        lng={-88.793250}
+        lat={20.882081}
+        zoom={7}
         cenotes={cenotes}
-        geoJson={geoJson}
       />
     </div>
   );
