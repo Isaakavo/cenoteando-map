@@ -8,6 +8,7 @@ import { SingUp } from './components/Signup';
 import { Login } from './components/Login';
 
 export interface geoJsonI {
+  id: number | string;
   type: 'Feature';
   geometry: {
     type: 'Point';

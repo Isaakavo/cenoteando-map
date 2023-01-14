@@ -11,6 +11,7 @@ import React from 'react';
 import '../map.css';
 import CenoteDTO from '../models/CenoteDTO';
 import { layers, mapLayers } from '../utils/tiles';
+import { CenoteBanner } from './CenoteBanner';
 import { MapLayerSelector } from './MapLayerSelector';
 
 interface MapCI {
@@ -80,6 +81,13 @@ export const MapC: React.FC<MapCI> = (props) => {
   const [API_KEY] = React.useState('2ovqIDOtsFG069J69Ap2');
   const [cenotesLayers, setCenotesLayers] = React.useState('');
   const geoJson = cenotes?.map((cenote) => cenote.getGeoJson());
+
+  const popup = React.useMemo(() => {
+    return new maplibreGl.Popup({
+      closeButton: true,
+      closeOnClick: true,
+    });
+  }, []);
 
   const onSelectedOptionCallback = (
     e: React.ChangeEvent<HTMLSelectElement>
@@ -159,15 +167,38 @@ export const MapC: React.FC<MapCI> = (props) => {
         }
       });
 
-      map.current.on('mouseenter', 'clusters', () => {
+      map.current.on('mouseenter', 'clusters', (e) => {
         if (map.current) {
           map.current.getCanvas().style.cursor = 'pointer';
+
+          if (!e.features?.[0].properties?.['cluster']) {
+            let coordinates = (
+              e.features?.[0].geometry as Point
+            )?.coordinates?.slice();
+            let description = cenotes?.filter(
+              (cenote) => e.features?.[0].id?.toString() === cenote.id
+            );
+
+            // Ensure that if the map is zoomed out such that multiple
+            // copies of the feature are visible, the popup appears
+            // over the copy being pointed to.
+            while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+              coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+            }
+            if (map !== null) {
+              popup
+                .setLngLat({ lat: coordinates[1], lng: coordinates[0] })
+                .setHTML(description?.[0].name ? description?.[0].name : '')
+                .addTo(map.current);
+            }
+          }
         }
       });
 
       map.current.on('mouseleave', 'clusters', () => {
         if (map.current) {
           map.current.getCanvas().style.cursor = '';
+          popup.remove();
         }
       });
       return; //stops map from intializing more than once
@@ -181,7 +212,8 @@ export const MapC: React.FC<MapCI> = (props) => {
     });
     let nav = new maplibreGl.NavigationControl({});
     map.current.addControl(nav, 'bottom-right');
-  }, [API_KEY, geoJson, lat, lng, zoom]);
+  }, [API_KEY, cenotes, geoJson, lat, lng, popup, zoom]);
+  console.log(cenotes);
 
   return (
     <div className='map-wrap'>
