@@ -1,16 +1,21 @@
 import React from 'react';
 import { httpClient } from '../services/HttpClient';
 
-export const useApi = (url: string, method: string, payload: object, params?: any) => {
+export const useApi = (
+  url: string,
+  method: string,
+  payload: object,
+  params?: any
+) => {
   const [data, setData] = React.useState<any>(null);
-  const [error, setError] = React.useState("");
+  const [error, setError] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const controllerRef = React.useRef(new AbortController());
   const cancel = () => {
     controllerRef.current.abort();
   };
 
-  const fetch = async () => {
+  const fetch = async (payload?: object) => {
     try {
       setLoading(true);
       const response = await httpClient.request({
@@ -18,19 +23,25 @@ export const useApi = (url: string, method: string, payload: object, params?: an
         signal: controllerRef.current.signal,
         method,
         url,
-        params
+        params,
       });
       setData(response.data);
     } catch (error: any) {
       setError(error.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  const postOperation = async (payload: object) => {
+    fetch(payload);
+  };
 
   React.useEffect(() => {
-    fetch()
+    if (method === 'get') {
+      fetch();
+    }
   }, []);
 
-  return {cancel, data, error, loading};
+  return { cancel, data, error, loading, postOperation };
 };

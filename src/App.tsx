@@ -4,6 +4,7 @@ import './map.css';
 import { MapC } from './components/MapC';
 import CenoteDTO from './models/CenoteDTO';
 import { useApi } from './hooks/useApi';
+import { SingUp } from './components/Signup';
 
 export interface geoJsonI {
   type: 'Feature';
@@ -39,6 +40,7 @@ function App() {
         zoom={7}
         cenotes={cenotes}
       />
+      <SingUp />
     </div>
   );
 }
