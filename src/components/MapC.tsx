@@ -11,7 +11,6 @@ import React from 'react';
 import '../map.css';
 import CenoteDTO from '../models/CenoteDTO';
 import { layers, mapLayers } from '../utils/tiles';
-import { CenoteBanner } from './CenoteBanner';
 import { MapLayerSelector } from './MapLayerSelector';
 
 interface MapCI {
