@@ -1,16 +1,22 @@
+import axios, { RawAxiosRequestHeaders } from 'axios';
 import React from 'react';
-import { httpClient } from '../services/HttpClient';
+import { ApiContext } from '../utils/ApiInstanceProviver';
 
 //TODO implement interceptors
 export const useApi = (
   url: string,
   method: string,
   payload: object,
-  params?: any
+  params?: any,
+  headers?: RawAxiosRequestHeaders
 ) => {
   const [data, setData] = React.useState<any>(null);
   const [error, setError] = React.useState('');
   const [loading, setLoading] = React.useState(false);
+  const contextInstance = React.useContext(ApiContext);
+  const instance = React.useMemo(() => {
+    return contextInstance || axios;
+  }, [contextInstance])
   const controllerRef = React.useRef(new AbortController());
   const cancel = () => {
     controllerRef.current.abort();
@@ -19,12 +25,13 @@ export const useApi = (
   const fetch = async (payload?: object) => {
     try {
       setLoading(true);
-      const response = await httpClient.request({
+      const response = await instance.request({
         data: payload,
         signal: controllerRef.current.signal,
         method,
         url,
         params,
+        headers
       });
       setData(response.data);
     } catch (error: any) {

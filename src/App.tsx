@@ -17,8 +17,7 @@ export interface geoJsonI {
 
 function App() {
   const [cenotes, setCenotes] = React.useState<CenoteDTO[] | null>(null);
-  const [geoJson, setGeoJson] = React.useState<geoJsonI[]>([]);
-  const {data, loading, error} = useApi('api/cenotes', 'get', {}, {size: 100});
+  const {data, loading, error} = useApi('api/cenotes', 'get', {}, {size: 2500});
   
   React.useEffect(() => {
     if (data !== null) {
@@ -32,6 +31,8 @@ function App() {
       <h1>Cargando...</h1>
     )
   }
+
+  console.log(error);
   
   return (
     <div className='map-wrap'>

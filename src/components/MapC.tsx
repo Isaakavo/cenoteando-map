@@ -79,7 +79,6 @@ export const MapC: React.FC<MapCI> = (props) => {
   const [zoom] = React.useState(props.zoom);
   const [API_KEY] = React.useState('2ovqIDOtsFG069J69Ap2');
   const [cenotesLayers, setCenotesLayers] = React.useState('');
-  debugger;
   const geoJson = cenotes?.map((cenote) => cenote.getGeoJson());
 
   const onSelectedOptionCallback = (
@@ -144,7 +143,6 @@ export const MapC: React.FC<MapCI> = (props) => {
       // the location of the feature, with
       // description HTML from its properties.
       map.current.on('click', 'unclustered-point', (e) => {
-        debugger;
         if (e.features !== undefined) {
           const coordinates = (
             e.features[0].geometry as Point
