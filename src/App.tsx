@@ -5,6 +5,7 @@ import { MapC } from './components/MapC';
 import CenoteDTO from './models/CenoteDTO';
 import { useApi } from './hooks/useApi';
 import { SingUp } from './components/Signup';
+import { Login } from './components/Login';
 
 export interface geoJsonI {
   type: 'Feature';
@@ -41,6 +42,7 @@ function App() {
         cenotes={cenotes}
       />
       <SingUp />
+      <Login />
     </div>
   );
 }

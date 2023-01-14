@@ -1,6 +1,7 @@
 import React from 'react';
 import { httpClient } from '../services/HttpClient';
 
+//TODO implement interceptors
 export const useApi = (
   url: string,
   method: string,
