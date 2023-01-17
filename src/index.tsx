@@ -5,6 +5,16 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { httpClientConfig } from './services/HttpClient';
 import { ApiInstanceProvider } from './utils/ApiInstanceProviver';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Link,
+  BrowserRouter,
+} from 'react-router-dom';
+import { NavBar } from './components/NavBar';
+import { Login } from './components/Login';
+import { SingUp } from './components/Signup';
 
 //TODO investigate about CORS
 //There is a bug that makes a first request without jwt token,
@@ -12,11 +22,13 @@ import { ApiInstanceProvider } from './utils/ApiInstanceProviver';
 const requestInterceptor = (config: AxiosRequestConfig) => {
   const authHeader = config?.headers?.['Authorization'];
   if (!authHeader) {
+    debugger;
     const accessToken = window.sessionStorage.getItem('userSession');
     const tokenType = 'Bearer';
 
     if (accessToken && tokenType) {
       if (config.headers !== null && config.headers !== undefined) {
+        debugger;
         config.headers['Authorization'] = tokenType + ' ' + accessToken;
       }
     }
@@ -41,12 +53,19 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
-    <ApiInstanceProvider
-      config={httpClientConfig}
-      requestInterceptors={[requestInterceptor]}
-    >
-      <App />
-    </ApiInstanceProvider>
+    <Router>
+      <ApiInstanceProvider
+        config={httpClientConfig}
+        requestInterceptors={[requestInterceptor]}
+      >
+        <NavBar />
+        <Routes>
+          <Route path='/' element={<App />} />
+          <Route path='/signup' element={<SingUp />} />
+          <Route path='/login' element={<Login />} /> 
+        </Routes>
+      </ApiInstanceProvider>
+    </Router>
   </React.StrictMode>
 );
 

@@ -5,7 +5,7 @@ export const SingUp: React.FC = () => {
   const [name, setName] = React.useState('isaak');
   const [email, setEmail] = React.useState('isaak@gmail.com');
   const [password, setPassword] = React.useState('123456');
-  const { data, error, postOperation } = useApi('/api/auth/register', 'post', {
+  const { data, error, fetch } = useApi('/api/auth/register', 'post', {
     name,
     email,
     password,
@@ -13,7 +13,7 @@ export const SingUp: React.FC = () => {
 
   const onSubmit = () => {
     console.log('Submiting the values', { name, email, password });
-    postOperation({ name, email, password });
+    fetch({ name, email, password });
     console.log('Response from the service');
     
   };

@@ -41,15 +41,11 @@ export const useApi = (
     }
   };
 
-  const postOperation = async (payload: object) => {
-    fetch(payload);
-  };
+  // React.useEffect(() => {
+  //   if (method === 'get') {
+  //     fetch();
+  //   }
+  // }, []);
 
-  React.useEffect(() => {
-    if (method === 'get') {
-      fetch();
-    }
-  }, []);
-
-  return { cancel, data, error, loading, postOperation };
+  return { cancel, data, error, loading, fetch };
 };
