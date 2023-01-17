@@ -96,30 +96,34 @@ export const MapC: React.FC<MapCI> = (props) => {
     map.current?.setStyle(mapLayers(e.target.value));
   };
 
+  const setClusters = () => {
+    if (geoJson && geoJson.length > 0) {
+      const sourceData = map.current?.getSource('cenotes');
+      if (!sourceData) {
+        map.current?.addSource('cenotes', {
+          type: 'geojson',
+          data: {
+            type: 'FeatureCollection',
+            features: geoJson,
+          },
+          cluster: true,
+          clusterMaxZoom: 14,
+          clusterRadius: 50,
+        });
+
+        map.current?.addLayer(clusterLayers);
+
+        map.current?.addLayer(symbolLayer);
+
+        map.current?.addLayer(unclusterLayer);
+      }
+    }
+  }
+
   React.useEffect(() => {
     if (map.current) {
       map.current.on('load', () => {
-        if (geoJson && geoJson.length > 0) {
-          const sourceData = map.current?.getSource('cenotes');
-          if (!sourceData) {
-            map.current?.addSource('cenotes', {
-              type: 'geojson',
-              data: {
-                type: 'FeatureCollection',
-                features: geoJson,
-              },
-              cluster: true,
-              clusterMaxZoom: 14,
-              clusterRadius: 50,
-            });
-
-            map.current?.addLayer(clusterLayers);
-
-            map.current?.addLayer(symbolLayer);
-
-            map.current?.addLayer(unclusterLayer);
-          }
-        }
+        setClusters()
       });
 
       map.current.on('click', 'clusters', (e) => {
@@ -201,6 +205,10 @@ export const MapC: React.FC<MapCI> = (props) => {
           popup.remove();
         }
       });
+
+      map.current.on('data', () => {
+        setClusters()
+      })
       return; //stops map from intializing more than once
     }
     // Instantiation of the map
